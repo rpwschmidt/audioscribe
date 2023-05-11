@@ -92,6 +92,6 @@ def interface():
 
 if __name__ == '__main__':
     global model
-    os.makedirs('./audiodata')
-    os.makedirs('./output')
+    os.makedirs('./audiodata', exist_ok=True)
+    os.makedirs('./output', exist_ok=True)
     interface()
