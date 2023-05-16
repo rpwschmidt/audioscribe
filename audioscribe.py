@@ -31,8 +31,14 @@ def convert_audio(folder):
 
 def transcribe_save(filename, original_name):
     transcript = model.transcribe(filename, fp16=False)['text']
-    with open(f'./output/{original_name.split(".")[0]}.txt', 'w') as output:
-        output.write(transcript.replace('. ', '.\n').replace('? ', '?\n'))
+    try:
+        with open(f'./output/{"_".join(original_name.split(".")[:-1])}.txt', 'w') as output:
+            output.write(transcript.replace('. ', '.\n').replace('? ', '?\n'))
+    except Exception as e:
+        print("An exception occurred:", str(e))
+        with open(f'./output/{original_name.split(".")[0].split(os.sep)[-1]}.txt', 'w') as output:
+            output.write(transcript.replace('. ', '.\n').replace('? ', '?\n'))
+        
 
 
 def initialize(model_size, use_gpu):
