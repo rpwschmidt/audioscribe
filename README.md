@@ -10,7 +10,7 @@ If Python is not yet installed, please do so first. Python 3.9.10 can be downloa
 
 For `audioscribe` to function, the [`ffmpeg CLI`](https://ffmpeg.org/) needs to be installed. This can be done in multiple ways, but let's use [`chocolatey`](https://chocolatey.org/). Run the following command in the Command Prompt terminal: `@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"`. If you do not have administrative rights, please follow [these steps](https://docs.chocolatey.org/en-us/choco/setup#non-administrative-install) instead.
 
-After the installation process has finished, enter en execute the following: `choco install ffmpeg`. 
+After the installation process has finished, enter and execute the following: `choco install ffmpeg`. 
 
 When prompted 'Do you want to run the script?([Y]es/[A]ll - yes to all/[N]o/[P]rint):' type in `Y` and press `Enter`.
 
