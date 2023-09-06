@@ -29,11 +29,4 @@ To install `openai/whisper` we need to have `git` installed. Please download and
 Finally, open a Terminal in the `./audioscribe` folder and run the following command to install the required dependencies: `pip install -r requirements.txt`.
 
 ### And now...
-Running the `audioscribe.py` file will start the program and create two folders: `audiodata` and `output`. When transcribing videos, the extracted audio will be saved in `./audiofolder`. All output `.txt` files will be placed in `./output`. 
-
-Windows users could opt to create a `.bat` file and put a shortcut on the desktop. This would look like the following: 
-```
-@echo off
-python audioscribe.py
-pause
-```
+Running the `audioscribe.pyw` file will start the program and create two folders: `audiodata` and `output`. When transcribing videos, the extracted audio will be saved in `./audiofolder`. All output `.txt` files will be placed in `./output`. 
