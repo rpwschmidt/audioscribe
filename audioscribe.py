@@ -19,14 +19,14 @@ def convert_video(folder):
         new_file = f"./audiodata/{original_name.split('.')[0]}.mp3"
         clip.audio.write_audiofile(new_file, logger=None)
         transcribe_save(new_file, original_name)
-    return f'Done! {len(folder)} video files processed and created.\nSaved in ./Whisper/output/ folder!\nTook {datetime.now()-start}'
+    return f'Done! {len(folder)} video files processed and created.\nSaved in ./audioscribe/output/ folder!\nTook {datetime.now()-start}'
 
 
 def convert_audio(folder):
     start = datetime.now()
     for file in folder:
         transcribe_save(file.name, file.orig_name)
-    return f'Done! {len(folder)} audio files processed and created.\nSaved in ./Whisper/output/ folder!\nTook {datetime.now()-start}'
+    return f'Done! {len(folder)} audio files processed and created.\nSaved in ./audioscribe/output/ folder!\nTook {datetime.now()-start}'
 
 
 def transcribe_save(filename, original_name):
