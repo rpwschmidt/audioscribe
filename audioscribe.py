@@ -80,7 +80,7 @@ def initialize(model_size, use_gpu):
 
 def interface():
     # Select a model to use for transcription
-    m_size = gr.Dropdown(label="Select model size", choices=["small", "medium", "large-v2"], value="large-v2", interactive=True)
+    m_size = gr.Dropdown(label="Select model size", choices=["small", "medium", "large-v2", "large-v3"], value="large-v3", interactive=True)
     check = gr.Checkbox(label="Use GPU (if available)", value=True, interactive=True)
     init = gr.Interface(fn=initialize, inputs=[m_size, check], outputs=gr.Textbox(label="Selected model - will be the best option available given your choice"), allow_flagging="never")
 
