@@ -11,7 +11,7 @@ def convert_video(folder):
 
     for file in folder:
         # Save the temporary filename, extract the audio and save it
-        original_name = file.orig_name
+        original_name = file.name.split('\\')[-1]
         file_name = file.name
         clip = VideoFileClip(file_name)
 
@@ -25,20 +25,16 @@ def convert_video(folder):
 def convert_audio(folder):
     start = datetime.now()
     for file in folder:
-        transcribe_save(file.name, file.orig_name)
+        transcribe_save(file.name, file.name.split('\\')[-1])
     return f'Done! {len(folder)} audio files processed and created.\nSaved in ./audioscribe/output/ folder!\nTook {datetime.now()-start}'
 
 
-def transcribe_save(filename, original_name):
-    transcript = model.transcribe(filename, fp16=False)['text']
-    try:
-        with open(f'./output/{"_".join(original_name.split(".")[:-1])}.txt', 'w') as output:
-            output.write(transcript.replace('. ', '.\n').replace('? ', '?\n'))
-    except Exception as e:
-        print("An exception occurred:", str(e))
-        with open(f'./output/{original_name.split(".")[0].split(os.sep)[-1]}.txt', 'w') as output:
-            output.write(transcript.replace('. ', '.\n').replace('? ', '?\n'))
-        
+def transcribe_save(fileloc, filename):
+    transcript = model.transcribe(fileloc, fp16=False)
+    with open(f'./output/{filename.split(".")[0]}.txt', 'w', encoding="utf-8") as output:
+        for segment in transcript['segments']:
+            text = segment['text'].replace('. ', '.\n').replace('? ', '?\n').replace('! ', '!\n')
+            output.write(f"[{round(segment['start'], 2)}s - {round(segment['end'], 2)}s]:\n{text[1:]}\n\n")
 
 
 def initialize(model_size, use_gpu):
@@ -82,14 +78,14 @@ def interface():
     # Select a model to use for transcription
     m_size = gr.Dropdown(label="Select model size", choices=["small", "medium", "large-v3"], value="large-v3", interactive=True)
     check = gr.Checkbox(label="Use GPU (if available)", value=True, interactive=True)
-    init = gr.Interface(fn=initialize, inputs=[m_size, check], outputs=gr.Textbox(label="Selected model - will be the best option available given your choice"), allow_flagging="never")
+    init = gr.Interface(fn=initialize, inputs=[m_size, check], outputs=gr.Textbox(label="Selected model will be the best available option"), allow_flagging="never")
 
     # Transcribe audio files
-    audio_upload = gr.File(file_count="multiple", file_types=["audio"], type="file", label="Upload audio file(s)")
+    audio_upload = gr.File(file_count="multiple", file_types=["audio"], type="filepath", label="Upload audio file(s)")
     audio = gr.Interface(fn=convert_audio, inputs=audio_upload, outputs=gr.Textbox(label="Output"), title="Transcribe Audio", allow_flagging="never")
 
     # Transcribe video files
-    video_upload = gr.File(file_count="multiple", file_types=["video"], type="file", label="Upload video file(s)")
+    video_upload = gr.File(file_count="multiple", file_types=["video"], type="filepath", label="Upload video file(s)")
     video = gr.Interface(fn=convert_video, inputs=video_upload, outputs=gr.Textbox(label="Output"), title="Transcribe Video", allow_flagging="never")
 
     # Combine interfaces into one object and launch in browser
