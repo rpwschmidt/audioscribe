@@ -10,6 +10,9 @@ This guide will help you get Audioscribe up and running on both Windows and MacO
 - Extract the contents to a directory named `/audioscribe-main`.
 
 ## Windows Setup
+### 1.5. Using a GPU (optional)
+If you want to run these models on a GPU (if you have one), which means faster inference, you will need to install CUDA. To install CUDA, [Visual Studio 2019 Community](https://visualstudio.microsoft.com/downloads/) needs to be installed on your system first. For this implementation of Whisper, you need CUDA 11.7, which can be downloaded and installed through [this link](https://developer.nvidia.com/cuda-11-7-0-download-archive). 
+
 ### 2. Install Python
 - If Python is not installed on your system, download and install Python 3.11.3 from [this link](https://www.python.org/ftp/python/3.11.3/python-3.11.3-amd64.exe).
 - During installation, ensure you check the box to **Add Python to PATH**.
