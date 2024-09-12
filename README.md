@@ -74,13 +74,13 @@ Audioscribe requires the [`ffmpeg`](https://ffmpeg.org/) command-line tool for p
 ## Using Audioscribe
 
 ### 1. Run the Program
-- To start Audioscribe, run the `audioscribe.py` file. This will automatically create two folders:
+- To start Audioscribe, run the `audioscribe.py` file by opening a Command Prompt (Windows) or Terminal (MacOS) in the  `/audioscribe-main` directory and type `python audioscribe.py`. This will run the script and automatically create two folders:
   - `audiodata`: Where extracted audio from videos will be saved.
   - `output`: Where the transcriptions (.txt files) will be stored.
 
 ### 2. Select a Model
 - In the Gradio interface, select a model and press the **Submit** button.
-    - As a general rule of thumb, smaller models are faster but less precise, while larger models are slower but more precise.
+    - As a general rule of thumb, smaller models are faster but less accurate, while larger models are slower but more accurate.
 - Wait for the model to load before navigating to the **Audio** or **Video** pages.
 
 ### 3. Transcribe Media Files
