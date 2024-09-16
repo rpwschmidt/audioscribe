@@ -41,7 +41,7 @@ Audioscribe requires the [`ffmpeg`](https://ffmpeg.org/) command-line tool for p
 - Open Command Prompt in the `/audioscribe-main` directory (you can do this by typing `cmd` in the address bar of File Explorer).
 - Run the following command to install the required Python dependencies:
 
-  ```pip install -r requirements.txt```
+  ```pip3 install -r requirements.txt```
 
 ## MacOS Setup (Version 10.9 or Later)
 
@@ -69,7 +69,7 @@ Audioscribe requires the [`ffmpeg`](https://ffmpeg.org/) command-line tool for p
 - Open Terminal in the `/audioscribe-main` directory.
 - Run the following command to install the required Python dependencies:
 
-  ```pip install -r requirements.txt```
+  ```pip3 install -r requirements.txt```
 
 ## Using Audioscribe
 
