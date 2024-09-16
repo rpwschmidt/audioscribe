@@ -1,7 +1,7 @@
 # python 3.11.3 64-bit
 # nvidia cuda 11.7.1: https://developer.nvidia.com/cuda-toolkit-archive
 
---index-url https://download.pytorch.org/whl/cu117
+# --index-url https://download.pytorch.org/whl/cu117
 torch==2.0.1
 torchvision
 torchaudio
@@ -9,3 +9,5 @@ ctranslate2==3.24.0
 faster-whisper==0.10.1
 gradio==4.41.0
 moviepy==1.0.3
+# --upgrade pydantic==2.8.0
+# --upgrade fastapi==0.112.4
