@@ -85,3 +85,11 @@ Audioscribe requires the [`ffmpeg`](https://ffmpeg.org/) command-line tool for p
 
 ### 3. Transcribe Media Files
 - Once the model is loaded, you can start transcribing audio or video files. The resulting text files will be saved in the `output` directory.
+
+
+## FAQ
+1. When running `pip3 install requirements.txt`, I get this error: `Could not find a version that satisfies the requirement ...`.
+  - Solution: Make sure that in the requirements.txt file, the line starting with `--index-url` is commented out.
+2. When trying to load a model, I get the following error: `Exception in ASGI application`
+  - Solution: Make sure to uncomment the last two lines in requirements.txt. This downgrades two modules, which solves the error. 
+ 
