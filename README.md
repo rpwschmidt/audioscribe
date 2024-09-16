@@ -39,9 +39,19 @@ Audioscribe requires the [`ffmpeg`](https://ffmpeg.org/) command-line tool for p
 
 ### 5. Install Dependencies
 - Open Command Prompt in the `/audioscribe-main` directory (you can do this by typing `cmd` in the address bar of File Explorer).
-- Run the following command to install the required Python dependencies:
+- Run the following commands to install the required Python dependencies:
 
-  ```pip3 install -r requirements.txt```
+    - If you installed CUDA first:
+
+      ```pip3 install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu117```
+
+    - If you did not install CUDA:
+
+      ```pip3 install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2```
+
+    - Followed by:
+  
+      ```pip3 install -r requirements.txt```
 
 ## MacOS Setup (Version 10.9 or Later)
 
@@ -67,8 +77,13 @@ Audioscribe requires the [`ffmpeg`](https://ffmpeg.org/) command-line tool for p
 
 ### 5. Install Dependencies
 - Open Terminal in the `/audioscribe-main` directory.
-- Run the following command to install the required Python dependencies:
-
+  
+- Run the following commands to install the required Python dependencies:
+  
+  ```pip3 install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2```
+  
+- Followed by:
+  
   ```pip3 install -r requirements.txt```
 
 ## Using Audioscribe
