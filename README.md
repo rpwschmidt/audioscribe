@@ -104,5 +104,4 @@ Audioscribe requires the [`ffmpeg`](https://ffmpeg.org/) command-line tool for p
 
 ## FAQ
 1. When trying to load a model, I get the following error: `Exception in ASGI application`
-  - Solution: Make sure to uncomment the last two lines in requirements.txt, and rerun the install command. This downgrades two modules, which solves the error. Alternatively, run the following command: `pip install --upgrade pydantic==2.8.0 fastapi==0.112.4`.
- 
+  - Run the following command in the command prompt (Windows) or Terminal (MacOS): `pip install --upgrade pydantic==2.8.0 fastapi==0.112.4`. This should solve the error.
