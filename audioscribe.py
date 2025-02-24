@@ -1,4 +1,5 @@
 import os
+import sys
 import torch
 from faster_whisper import WhisperModel
 import gradio as gr
@@ -8,16 +9,13 @@ from moviepy.editor import VideoFileClip
 
 def convert_video(folder):
     """
-    Load in a video and extract the audio from it. Then, save the audio as mp3 and transcribe it.
+    Load a video and extract the audio from it. Then, save the audio as mp3 and transcribe it.
     """
     start = datetime.now()
     for file in folder:
         # Save the temporary filename, extract the audio and save it
         _, original_name = os.path.split(file.name)
         filename, _ = os.path.splitext(original_name)
-
-        # original_name = file.name.split('/')[-1]
-        # file_name = file.name
         clip = VideoFileClip(file.name)
 
         # Define the name of the output file
@@ -34,7 +32,7 @@ def convert_video(folder):
 
 def convert_audio(folder):
     """
-    Load in an audio file and transcribe it.
+    Load an audio file and transcribe it.
     """
     start = datetime.now()
     for file in folder:
@@ -58,16 +56,20 @@ def transcribe_save(file_loc, filename):
         for sentence in transcript:
             timestamp = f"[{round(sentence.start, 2)}s - {round(sentence.end, 2)}s]\n"
             text = sentence.text.replace('. ', '.\n').replace('? ', '?\n').replace('! ', '!\n').lstrip()
-            output.write(timestamp + text + '\n\n')
+            full_text = timestamp + text if add_timestamps else text
+            output.write(full_text + '\n\n')
 
 
-def initialize(model_size, use_gpu):
+def initialize(model_size, use_gpu, toggle_timestamps):
     """
     Function to choose and load a preferred model. Any GPU model selection is available, but the script will fall back
     to the next best option if the hardware does not support it.
     CPU models are restricted on RAM and will load regardless of GPU availability.
     """
     global model
+    global add_timestamps
+    add_timestamps = toggle_timestamps
+
     MEMORY = torch.cuda.mem_get_info()[-1] if torch.cuda.is_available() else 0
     try:
         if use_gpu:
@@ -98,9 +100,10 @@ def interface():
     They can then upload audio or video files to transcribe. The output will be saved in the output folder.
     """
     # Select a model to use for transcription
-    m_size = gr.Dropdown(label="Select model size", choices=["small", "medium", "large-v3"], value="large-v3", interactive=True)
+    m_size = gr.Dropdown(label="Select model size", choices=["small", "medium", "large-v3", "large-v3-turbo"], value="large-v3-turbo", interactive=True)
     check = gr.Checkbox(label="Use GPU (if available)", value=True, interactive=True)
-    init = gr.Interface(fn=initialize, inputs=[m_size, check], outputs=gr.Textbox(label="Selected model will be the best available option"), allow_flagging="never")
+    toggle_timestamps = gr.Checkbox(label="Include timestamps", value=False, interactive=True)
+    init = gr.Interface(fn=initialize, inputs=[m_size, check, toggle_timestamps], outputs=gr.Textbox(label="Selected model will be the best available option"), allow_flagging="never")
 
     # Transcribe audio files
     audio_upload = gr.File(file_count="multiple", file_types=["audio"], type="filepath", label="Upload audio file(s)")
@@ -115,7 +118,8 @@ def interface():
 
 
 if __name__ == '__main__':
-    global model
+    global model, add_timestamps
     os.makedirs('./audiodata', exist_ok=True)
     os.makedirs('./output', exist_ok=True)
     interface()
+
