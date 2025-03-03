@@ -69,29 +69,27 @@ def initialize(model_size, use_gpu, toggle_timestamps):
     global model
     global add_timestamps
     add_timestamps = toggle_timestamps
-
     MEMORY = torch.cuda.mem_get_info()[-1] if torch.cuda.is_available() else 0
-    try:
-        if use_gpu:
-            # Try the chosen option first
-            if torch.cuda.is_available() and (MEMORY >= 3.8e9):
-                model = WhisperModel(model_size, device="cuda", compute_type="int8_float16")
-                return f"Using the {model_size.upper()} model, running on GPU"
-            elif torch.cuda.is_available() and (MEMORY >= 2.8e9):
-                model = WhisperModel('medium', device="cuda", compute_type="int8_float32")
-                return f"Using the MEDIUM model, running on GPU"
-            elif torch.cuda.is_available() and (MEMORY >= 1.8e9):
-                model = WhisperModel('small', device="cuda", compute_type="int8_float32")
-                return f"Using the SMALL model, running on GPU"
-            else:
-                model = WhisperModel(model_size, device="cpu", compute_type="auto")
-                return f"No GPU available, using the {model_size.upper()} model, running on CPU"
-        else:
-            model = WhisperModel(model_size, device="cpu", compute_type="auto")
-            return f"Using the {model_size.upper()} model, running on CPU"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    except RuntimeError:
-        print("An error has been encountered.")
+    # Use selected model if enough memory
+    gpu_options = [
+        (3.8e9, model_size),
+        (2.8e9, "medium"),
+        (1.8e9, "small"),
+    ]
+    try:
+        if use_gpu and torch.cuda.is_available():
+            for mem_threshold, model_choice in gpu_options:
+                if MEMORY >= mem_threshold:
+                    model = WhisperModel(model_choice, device=device, compute_type="auto")
+                    return f"Using the {model_choice.upper()} model, running on GPU"
+        # Fallback to CPU
+        model = WhisperModel(model_size, device="cpu", compute_type="auto")
+        return f"Using the {model_size.upper()} model, running on CPU"
+
+    except RuntimeError as e:
+        print(f"An error has been encountered: {e}")
 
 
 def interface():
