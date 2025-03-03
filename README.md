@@ -10,7 +10,7 @@ This guide will help you get Audioscribe up and running on both Windows and MacO
 - Extract the contents to a directory named `/audioscribe-main`.
 
 ## Windows Setup
-### 1.5. Using a GPU (Windows, optional)
+### 1.5. Using a GPU (optional)
 To perform faster inference, you need to run the transcription models on a GPU (if you have one). To do this, you will need to install CUDA. To do so, [Visual Studio 2019 Community](https://visualstudio.microsoft.com/downloads/) needs to be installed on your system first. Then download and install CUDA 12.4, which can be downloaded and installed through [this link](https://developer.nvidia.com/cuda-12-4-1-download-archive).
 
 ### 2. Install Python
