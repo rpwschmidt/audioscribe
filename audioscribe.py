@@ -4,7 +4,7 @@ import torch
 from faster_whisper import WhisperModel
 import gradio as gr
 from datetime import datetime
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 
 
 def convert_video(folder):
