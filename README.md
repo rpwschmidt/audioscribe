@@ -27,8 +27,7 @@ To perform faster inference, you need to run the transcription models on a GPU (
 ## MacOS Setup (Version 10.9 or Later)
 
 ### 2. Install Python
-- If you already have a Python version installed, make sure it is Python 3.9 or newer.
-- If Python is not installed on your system, download and install Python 3.11.9 from [this link](https://www.python.org/downloads/release/python-3119/).
+- Make sure to install Python 3.11.9 from [this link](https://www.python.org/downloads/release/python-3119/).
 - After installation, disable the max path length if possible.
 
 ### 3. Install Dependencies
