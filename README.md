@@ -32,7 +32,7 @@ To perform faster inference, you need to run the transcription models on a GPU (
 
 ### 3. Install Dependencies
 - Open a Terminal in the `/audioscribe-main` directory.
-- Run the following commands to install the required Python dependencies: ```pip3 install -r requirements_mac.txt```
+- Run the following commands to install the required Python dependencies: ```pip3 install -r requirements.txt```
 
 
 ## Using Audioscribe
