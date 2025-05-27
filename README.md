@@ -43,10 +43,10 @@ To perform faster inference, you need to run the transcription models on a GPU (
   - `output`: Where the transcriptions (.txt files) will be stored.
 
 ### 2. Select a Model
-- In the Gradio interface, choose whether to use your GPU (if available) and whether to include timestamps in the transcription.
-- Select a model and press the **Submit** button.
-    - As a general rule of thumb, smaller models are faster but less accurate, while larger models are slower but more accurate.
-- Wait for the model to load before navigating to the **Audio** or **Video** pages.
+- In the Gradio interface, choose whether to use your GPU (if available) for faster inference.
+- Select a model and press the **Initialize Model** button.
+- Wait for the model to load before navigating to the **Transcribe** page.
+- Choose whether to include timestamps in the final transcript.
 
-### 3. Transcribe Media Files
-- Once the model is loaded, you can start transcribing audio or video files. The resulting text files will be saved in the `output` directory.
+### 3. Transcribe Files
+- After transcription, the resulting text file(s) will be saved in the `output` directory.
