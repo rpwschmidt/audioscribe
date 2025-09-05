@@ -1,19 +1,18 @@
 import gc
 import torch
+import whisperx
 import gradio as gr
-from tqdm import tqdm
 from pathlib import Path
+from typing import List, Set
 from datetime import datetime
-from typing import List, Optional, Set
 from moviepy import VideoFileClip, AudioFileClip
-from faster_whisper import WhisperModel
 
 
 class Audioscribe:
     """Main Audioscribe class to handle the transcription of audio and video files."""
-
     def __init__(self):
-        self.model: Optional[WhisperModel] = None
+        self.model = None
+        self.model_str = None
         self.audio_formats: Set[str] = {".mp3", ".aac", ".m4a", ".wav", ".flac", ".opus"}
         self.video_formats: Set[str] = {".mp4", ".mkv", ".avi", ".mov", ".webm", ".wmv", ".mpeg", ".m4v", ".ogv"}
         self.gpu_memory_requirements = [
@@ -47,6 +46,9 @@ class Audioscribe:
         try:
             if torch.cuda.is_available():
                 self.memory = torch.cuda.get_device_properties(0).total_memory
+                # Fix reproducibility issue 
+                torch.backends.cuda.matmul.allow_tf32 = False
+                torch.backends.cudnn.allow_tf32 = False
             else:
                 self.memory = 0
         except Exception as e:
@@ -71,18 +73,21 @@ class Audioscribe:
         # Really low gpu memory fallback
         return "small"
 
+    def _unload_model(self, reason: str = "") -> None:
+        self.print_info(f"Switching models{reason}...", message_type="info")
+        del self.model
+        self.model = None
+        torch.cuda.empty_cache()
+        gc.collect()
+
     def initialize_model(self, model_size: str, use_gpu: bool, speedup: bool) -> str:
         """Function to choose and load a preferred model."""
         # Check if model is already loaded when switching models
         if self.model is not None:
-            self.print_info("Switching models...", message_type="info")
-            del self.model
-            self.model = None
-            torch.cuda.empty_cache()
-            gc.collect()
+            self._unload_model()
 
         # Load transcription model
-        model_str = self._select_model(model_size, use_gpu)
+        self.model_str = self._select_model(model_size, use_gpu)
 
         try:
             device = self.device if use_gpu else "cpu"
@@ -91,10 +96,10 @@ class Audioscribe:
             else:
                 compute_type = "auto"
 
-            self.model = WhisperModel(model_str, device=device, compute_type=compute_type)
+            self.model = whisperx.load_model(self.model_str, device=device, compute_type=compute_type)
             # Return status message
             device_str = "GPU" if device == "cuda" else "CPU"
-            return f"Using {model_str.upper()} model on {device_str}"
+            return f"Using {self.model_str.upper()} model on {device_str}"
 
         except RuntimeError as e:
             self.print_info(f"Model initialization error: {str(e)}", message_type="error")
@@ -114,46 +119,114 @@ class Audioscribe:
             self.print_info(error_msg, message_type="error")
             raise RuntimeError(error_msg)
 
-    def _transcribe(self, audio_path: str, timestamps: bool, progress=gr.Progress(track_tqdm=True)) -> List[str]:
+    def _align(self, result, audio_path, device):
+        self._unload_model(reason=", identifying speakers. Aligning text")
+        self.model, metadata = whisperx.load_align_model(language_code=result["language"], device=device)
+        alignment_result = whisperx.align(result["segments"], self.model, metadata, audio_path, device, return_char_alignments=False)
+        return alignment_result
+
+    def _sync_output(self, result, audio_path, device, num_speakers):
+        with open("./hf_token.txt") as file:
+            hf_token = file.read().strip()
+
+        self._unload_model(reason=", getting speaker segments")
+        self.model = whisperx.diarize.DiarizationPipeline(use_auth_token=hf_token, device=device)
+        diarize_segments = self.model(audio_path, num_speakers=num_speakers)
+        result = whisperx.assign_word_speakers(diarize_segments, result)
+        return result
+
+    def _swap_back(self, device, compute_type):
+        self._unload_model(reason=", switching back to transcription model")
+        self.model = whisperx.load_model(self.model_str, device=device, compute_type=compute_type)
+        self.print_info(f"Loaded transcription model.", message_type="info")
+
+    def _speaker_diarization(self, result: dict, audio_path: str, num_speakers: int) -> dict:
+        """Swap to a speaker diarization model if available."""
+        device, compute_type = self.model.model.model.device, self.model.model.model.compute_type
+        try:
+            if Path('./hf_token.txt').is_file():
+                # Align output
+                alignment_result = self._align(result, audio_path, device)
+                # Get speaker segments and assign to words
+                result = self._sync_output(alignment_result, audio_path, device, num_speakers)
+                self._swap_back(device, compute_type)
+                return result
+            else:
+                self.print_info("HF token file not found. Speaker diarization disabled.", message_type="warning")
+
+        except Exception as e:
+            self.print_info(f"Error loading diarization model: {e}", message_type="error")
+
+    def _format_output(self, start: str, end: str, speaker: str, text: str, timestamp: str) -> str:
+        if timestamp:
+            ts = f"[{start:.2f}s - {end:.2f}s]"
+            return f"{ts} {speaker}: {text}" if speaker else f"{ts} {text}"
+        return f"{speaker}: {text}" if speaker else text
+
+    def _transcribe(self, audio_path: str, timestamps: bool, translate: bool, diarization: bool, num_speakers: int, progress=gr.Progress()) -> List[str]:
         """Transcribe the audio and return the transcript."""
         if not self.model:
             self.print_info("Model not initialized", message_type="warning")
             raise RuntimeError("Model not initialized.")
 
-        transcript, info = self.model.transcribe(audio_path, vad_filter=True)
-        self.print_info(f"Finished transcribing file. Decoding...", message_type="info")
+        progress(0.0, desc="Starting transcription...")
+        task = "translate" if translate else "transcribe"
+        result = self.model.transcribe(audio_path, task=task)
+
+        if diarization:
+            progress(0.7, desc="Identifying speakers...")
+            result = self._speaker_diarization(result, audio_path, num_speakers)
+            current_speaker = None
+            current_text = []
+            block_start = None
+            block_end = None
+
         output_lines = []
-        processed_duration = 0.0
+        duration = result['segments'][-1]['end']
+        progress(0.9, desc="Writing to file...")
 
         try:
-            with tqdm(total=info.duration, unit=" s") as pbar:
-                for segment in transcript:
-                    # Combat potential hallucinations
-                    if segment.end > info.duration:
+            if diarization:
+                for segment in result["segments"]:
+                    # Combat hallucinations
+                    if segment["end"] > duration:
                         break
 
-                    if timestamps:
-                        timestamp_str = f"[{segment.start:.2f}s - {segment.end:.2f}s]"
-                        output_lines.append(timestamp_str + segment.text.strip())
+                    speaker = segment.get("speaker", "UNKNOWN")
+                    text = segment["text"].strip()
+
+                    # Start a new block
+                    if speaker != current_speaker:
+                        # Save previous block
+                        if current_speaker is not None:
+                            output_lines.append(self._format_output(block_start, block_end, current_speaker, " ".join(current_text), timestamps))
+
+                        # Reset block
+                        current_speaker = speaker
+                        current_text = [text]
+                        block_start = segment["start"]
+                        block_end = segment["end"]
                     else:
-                        output_lines.append(segment.text.strip())
+                        # Extend the current block
+                        current_text.append(text)
+                        block_end = segment["end"]
 
-                    # Update progress bar
-                    pbar.update(segment.end - processed_duration)
-                    processed_duration = segment.end
-                    progress(processed_duration / info.duration,
-                             desc=f"Processed {processed_duration:.1f}s / {info.duration:.1f}s")
+                # Flush the last block
+                if current_speaker is not None:
+                    output_lines.append(self._format_output(block_start, block_end, current_speaker, " ".join(current_text), timestamps))
 
-                # Handle silence at the end
-                if processed_duration < info.duration:
-                    pbar.update(info.duration - processed_duration)
-                    progress(1.0, desc=f"Completed: {info.duration:.1f}s / {info.duration:.1f}s")
+            else:
+                for segment in result["segments"]:
+                    if segment['end'] > duration:
+                        break
+                    output_lines.append(self._format_output(segment['start'], segment['end'], None, segment['text'].strip(), timestamps))
 
         except Exception as e:
             error_msg = f"Error during decoding: {e}"
             self.print_info(error_msg, message_type="warning")
             raise RuntimeError(error_msg)
 
+        progress(1.0, desc="Transcription complete.")
         return output_lines
 
     def _extract_audio(self, video_path: str, output_path: str) -> None:
@@ -176,7 +249,7 @@ class Audioscribe:
             self.print_info(error_msg, message_type="error")
             raise RuntimeError(error_msg)
 
-    def process_files(self, files: List[gr.File], timestamps: bool) -> str:
+    def process_files(self, files: List[gr.File], timestamps: bool, translate: bool, diarization: bool, num_speakers: int) -> str:
         if not files:
             self.print_info("No files provided for transcription.", message_type="warning")
             return "No files provided for transcription."
@@ -213,11 +286,11 @@ class Audioscribe:
                     process_path = Path("./audiodata") / f"{filename}.wav"
                     self._extract_audio(str(file_path), str(process_path))
 
-                transcript = self._transcribe(process_path, timestamps)
+                transcript = self._transcribe(process_path, timestamps, translate, diarization, num_speakers)
                 self._save_transcript(transcript, filename)
 
         except Exception as e:
-            error_msg = f"Error processing files: {str(e)}"
+            error_msg = f"Error processing files: {str(e)}\nPlease try again."
             self.print_info(error_msg, message_type="error")
             return error_msg
 
@@ -228,7 +301,6 @@ class Audioscribe:
 
     def create_interface(self):
         """Create the Gradio interface for Audioscribe."""
-        # speedy_transcription
         css = """
         .gradio-container {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
         .tabs {margin-top: 20px;}
@@ -256,7 +328,7 @@ class Audioscribe:
                                 label="Model Size",
                                 choices=model_choices,
                                 value=model_choices[-2],  # Default to large-v3-turbo
-                                info="Larger models are more accurate, but slower"
+                                info="Larger models are more accurate, but slower.\nTranslation does NOT work with the turbo model!"
                             )
                             with gr.Row():
                                 gpu_checkbox = gr.Checkbox(
@@ -293,6 +365,7 @@ class Audioscribe:
                             - Use high-quality audio
                             - Minimize background noise
                             - Larger models provide better accuracy but are slower
+                            - When translating with `large-v3`, more than 4GB of GPU memory is required for it to work reliably. If you have less GPU memory and it crashes, please try again.
                             """)
 
                             gr.Markdown(f"""
@@ -322,19 +395,41 @@ class Audioscribe:
                         type="filepath",
                         label="Upload Audio/Video Files"
                     )
+                    with gr.Row():
+                        transcribe_timestamps = gr.Checkbox(
+                            label="Include Timestamps",
+                            value=False,
+                            info="Add timestamps to each transcript segment"
+                        )
 
-                    transcribe_timestamps = gr.Checkbox(
-                        label="Include Timestamps",
-                        value=False,
-                        info="Add timestamps to each transcript segment"
-                    )
+                        transcribe_translate = gr.Checkbox(
+                            label="Translate to English",
+                            value=False,
+                            info="Translate the transcript to English (if not already).\nDOES NOT WORK WITH THE TURBO MODEL!"
+                        )
+
+                        diarization_checkbox = gr.Checkbox(
+                            label="Identify Speakers",
+                            value=False,
+                            info="Identify different speakers in the audio"
+                        )
+
+                        num_speakers = gr.Number(
+                            label="Number of Speakers",
+                            value=2,
+                            info="Set the expected number of speakers (if known)",
+                            minimum=1,
+                            maximum=10,
+                            step=1,
+                            precision=0
+                        )
 
                     transcribe_button = gr.Button("Transcribe", variant="primary")
                     transcribe_output = gr.Textbox(label="Results", interactive=False, lines=5)
 
                     transcribe_button.click(
                         fn=self.process_files,
-                        inputs=[files, transcribe_timestamps],
+                        inputs=[files, transcribe_timestamps, transcribe_translate, diarization_checkbox, num_speakers],
                         outputs=transcribe_output
                     )
 

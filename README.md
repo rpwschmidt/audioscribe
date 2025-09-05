@@ -1,6 +1,6 @@
 # Audioscribe: Setup and Usage Guide
 
-**Audioscribe** is a tool that uses [`SYSTRAN/faster-whisper`](https://github.com/SYSTRAN/faster-whisper) to perform automated audio and video transcriptions. It comes with a user interface built with [`Gradio`](https://gradio.app/).
+**Audioscribe** is a tool that uses [`m-bain/whisperX`](https://github.com/m-bain/whisperX) to perform automated audio and video transcriptions. It comes with a user interface built with [`Gradio`](https://gradio.app/).
 
 This guide will help you get Audioscribe up and running on both Windows and MacOS. Follow the instructions relevant to your operating system.
 
@@ -9,8 +9,9 @@ This guide will help you get Audioscribe up and running on both Windows and MacO
 - Download the Audioscribe repository as a ZIP file.
 - Extract the contents to a directory named `/audioscribe-main`.
 
+
 ## Windows Setup
-### 1.5. Using a GPU (optional)
+### 1.5. Using a GPU (optional, but recommended)
 To perform faster inference, you need to run the transcription models on a GPU (if you have one). To do this, you will need to install CUDA. To do so, [Visual Studio 2019 Community](https://visualstudio.microsoft.com/downloads/) needs to be installed on your system first. Then download and install CUDA 12.4, which can be downloaded and installed through [this link](https://developer.nvidia.com/cuda-12-4-1-download-archive).
 
 ### 2. Install Python
@@ -21,7 +22,8 @@ To perform faster inference, you need to run the transcription models on a GPU (
 
 ### 3. Install Dependencies
 - Open Command Prompt in the `/audioscribe-main` directory (you can do this by typing `cmd` in the address bar of File Explorer).
-- Run the following commands to install the required Python dependencies: ```pip3 install -r requirements.txt```
+- Run the following command to install the required Python dependencies: ```pip3 install -r requirements.txt```
+- Then, update `ctranslate2` by running the command: ```pip3 install ctranslate2==4.6.0```
 
 
 ## MacOS Setup (Version 10.9 or Later)
@@ -32,21 +34,21 @@ To perform faster inference, you need to run the transcription models on a GPU (
 
 ### 3. Install Dependencies
 - Open a Terminal in the `/audioscribe-main` directory.
-- Run the following commands to install the required Python dependencies: ```pip3 install -r requirements.txt```
+- Run the following command to install the required Python dependencies: ```pip3 install -r requirements.txt```
+- Then, update `ctranslate2` by running the command: ```pip3 install ctranslate2==4.6.0```
 
 
 ## Using Audioscribe
 
 ### 1. Run the Program
-- To start Audioscribe, run the `audioscribe.py` file by opening a Command Prompt (Windows) or Terminal (MacOS) in the  `/audioscribe-main` directory and type `python audioscribe.py`. This will run the script and automatically create two folders:
+- To start Audioscribe, run the `audioscribe.py` file by opening a Command Prompt (Windows) or Terminal (MacOS) in the  `/audioscribe-main` directory and type `python audioscribe.py` (Windows) or `python3 audioscribe.py` (MacOS). This will run the script, which will then automatically create two folders:
   - `audiodata`: Where extracted audio from videos will be saved.
-  - `output`: Where the transcriptions (.txt files) will be stored.
+  - `output`: Where the transcripts (.txt files) will be stored.
 
 ### 2. Select a Model
-- In the Gradio interface, choose whether to use your GPU (if available) for faster inference.
+- In the Gradio interface, choose whether to use your GPU (if available) for faster processing.
 - Select a model and press the **Initialize Model** button.
 - Wait for the model to load before navigating to the **Transcribe** page.
-- Choose whether to include timestamps in the final transcript.
 
 ### 3. Transcribe Files
 - After transcription, the resulting text file(s) will be saved in the `output` directory.
