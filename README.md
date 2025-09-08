@@ -14,13 +14,18 @@ This guide will help you get Audioscribe up and running on both Windows and MacO
 ### 1.5. Using a GPU (optional, but recommended)
 To perform faster inference, you need to run the transcription models on a GPU (if you have one). To do this, you will need to install CUDA. To do so, [Visual Studio 2019 Community](https://visualstudio.microsoft.com/downloads/) needs to be installed on your system first. Then download and install CUDA 12.4, which can be downloaded and installed through [this link](https://developer.nvidia.com/cuda-12-4-1-download-archive).
 
-### 2. Install Python
+### 2. Install FFMPEG
+- To work with audio files, we need FFMPEG, which we can install using `chocolatey`. To install this, run the following command in the **powershell with admin privileges**:
+  ```Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))```
+- Afterwards, install FFMPEG like so: ```choco install ffmpeg```. Press [y] + Enter when prompted.
+
+### 3. Install Python
 - If you already have a Python version installed, make sure it is Python 3.9 or newer.
 - If Python is not installed on your system, download and install Python 3.11.9 from [this link](https://www.python.org/downloads/release/python-3119/).
 - During installation, check the box to **Add Python to PATH** if given the option.
 - After the installation, disable the max path length if prompted.
 
-### 3. Install Dependencies
+### 4. Install Dependencies
 - Open Command Prompt in the `/audioscribe-main` directory (you can do this by typing `cmd` in the address bar of File Explorer).
 - Run the following command to install the required Python dependencies: ```pip3 install -r requirements.txt```
 - Then, update `ctranslate2` by running the command: ```pip3 install ctranslate2==4.6.0```
@@ -28,11 +33,16 @@ To perform faster inference, you need to run the transcription models on a GPU (
 
 ## MacOS Setup (Version 10.9 or Later)
 
-### 2. Install Python
+### 2. Install FFMPEG
+- To work with audio files, we need FFMPEG, which we can install using `brew`. To install this, run the following command in **terminal**:
+  ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"```
+- Afterwards, install FFMPEG like so: ```brew install ffmpeg```, and follow the instructions on-screen.
+
+### 3. Install Python
 - Make sure to install Python 3.11.9 from [this link](https://www.python.org/downloads/release/python-3119/).
 - After installation, disable the max path length if possible.
 
-### 3. Install Dependencies
+### 4. Install Dependencies
 - Open a Terminal in the `/audioscribe-main` directory.
 - Run the following command to install the required Python dependencies: ```pip3 install -r requirements.txt```
 - Then, update `ctranslate2` by running the command: ```pip3 install ctranslate2==4.6.0```
