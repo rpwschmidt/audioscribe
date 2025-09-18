@@ -25,6 +25,14 @@ class Audioscribe:
         self._device_setup()
 
     @staticmethod
+    def _format_time(seconds: float) -> str:
+        """Convert seconds to hh:mm:ss format."""
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = round(seconds % 60, 2)
+        return f"{hours:02}:{minutes:02}:{secs:04}"
+
+    @staticmethod
     def print_info(text: str, message_type: str = "info") -> None:
         print(text)
         if message_type == "error":
@@ -159,7 +167,7 @@ class Audioscribe:
 
     def _format_output(self, start: str, end: str, speaker: str, text: str, timestamp: str) -> str:
         if timestamp:
-            ts = f"[{start:.2f}s - {end:.2f}s]"
+            ts = f"[{self._format_time(start)}] - [{self._format_time(end)}]"
             return f"{ts} {speaker}: {text}" if speaker else f"{ts} {text}"
         return f"{speaker}: {text}" if speaker else text
 
