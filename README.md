@@ -1,6 +1,6 @@
 # Audioscribe: Setup and Usage Guide
 
-**Audioscribe** is a tool that uses [`m-bain/whisperX`](https://github.com/m-bain/whisperX) to perform automated audio and video transcriptions. It comes with a user interface built with [`Gradio`](https://gradio.app/).
+**Audioscribe** is a tool that uses [`m-bain/whisperX`](https://github.com/m-bain/whisperX) (Bain et al., INTERSPEECH 2023) for time-accurate transcription of audio and video. It comes with a user interface built with [`Gradio`](https://gradio.app/).
 
 This guide will help you get Audioscribe up and running on both Windows and MacOS. Follow the instructions relevant to your operating system.
 
