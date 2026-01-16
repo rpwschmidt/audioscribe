@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Audioscribe"
+authors:
+  - family-names: Schmidt
+    given-names: R. P. W.
+year: 2023
+url: "https://github.com/rpwschmidt/audioscribe"
+type: software
